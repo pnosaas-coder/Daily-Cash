@@ -1,6 +1,14 @@
 // frontend/vitest.config.ts — minimal config; default test discovery.
 import { defineConfig } from 'vitest/config';
+import { createRequire } from 'node:module';
 import path from 'node:path';
+
+// Resolve through Node instead of hardcoding frontend/node_modules, so the
+// alias works whether pnpm installs deps locally (isolated linker) or at the
+// repo root (node-linker=hoisted, see .npmrc).
+const serverOnlyDir = path.dirname(
+  createRequire(path.resolve(__dirname, 'package.json')).resolve('server-only'),
+);
 
 export default defineConfig({
   test: {
@@ -25,7 +33,7 @@ export default defineConfig({
       // server-only boundary in Next.js bundles. Vitest runs in plain Node,
       // so we alias it to the package's empty stub for tests. Production
       // bundles still go through Next's bundler which uses the real package.
-      'server-only': path.resolve(__dirname, './node_modules/server-only/empty.js'),
+      'server-only': path.join(serverOnlyDir, 'empty.js'),
     },
   },
 });
